@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planeta Terra - CosmoCurios</title>
+    <meta name="description" content="Curiosidades fascinantes sobre o planeta Terra">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container content-page">
+        <header>
+            <div class="logo">CosmoCurios</div>
+            <p class="tagline">Planeta Terra - Nosso Lar no Universo</p>
+        </header>
+
+        <a href="index.html" class="back-button">← Voltar para Início</a>
+
+        <h1 class="page-title">🌍 Planeta Terra</h1>
+
+        <div class="diagram-container">
+            <h2 class="diagram-title">Terra em Rotação</h2>
+            <div class="diagram" id="main-diagram"></div>
+            <p>Nosso planeta completa uma rotação a cada 24 horas</p>
+        </div>
+
+        <section class="curiosities-section">
+            <h2 class="section-subtitle">Curiosidades sobre a Terra</h2>
+            <div class="curiosities-grid" id="curiosities-grid">
+                <!-- As curiosidades serão carregadas via JavaScript -->
+            </div>
+        </section>
+
+        <footer>
+            <p>CosmoCurios - Descubra as maravilhas do nosso planeta</p>
+            <p>© 2025 - Todos os direitos reservados</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Inicializar página específica
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCuriosities('terra');
+            createDiagram('terra');
+        });
+    </script>
+</body>
+</html>

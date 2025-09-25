@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meteoritos - CosmoCurios</title>
+    <meta name="description" content="Curiosidades sobre meteoritos e onde encontrá-los">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container content-page">
+        <header>
+            <div class="logo">CosmoCurios</div>
+            <p class="tagline">Meteoritos - Mensageiros do Espaço</p>
+        </header>
+
+        <a href="index.html" class="back-button">← Voltar para Início</a>
+
+        <h1 class="page-title">☄️ Meteoritos</h1>
+
+        <div class="diagram-container">
+            <h2 class="diagram-title">Busca por Meteoritos</h2>
+            <div class="diagram" style="background:#2e3b85">
+                <div style="position:absolute;bottom:-50px;left:50%;transform:translateX(-50%);width:150px;height:150px;background:radial-gradient(circle,#a8d8e9,#7bb8d3);border-radius:50%;border:3px solid #4fc3f7"></div>
+            </div>
+            <p>A Antártida é o melhor lugar para encontrar meteoritos</p>
+        </div>
+
+        <section class="curiosities-section">
+            <h2 class="section-subtitle">Curiosidades sobre Meteoritos</h2>
+            <div class="curiosities-grid" id="curiosities-grid">
+                <!-- As curiosidades serão carregadas via JavaScript -->
+            </div>
+        </section>
+
+        <footer>
+            <p>CosmoCurios - Descubra os mensageiros do espaço</p>
+            <p>© 2025 - Todos os direitos reservados</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCuriosities('meteoritos');
+        });
+    </script>
+</body>
+</html>

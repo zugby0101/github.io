@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espaço - CosmoCurios</title>
+    <meta name="description" content="Curiosidades fascinantes sobre o espaço e universo">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container content-page">
+        <header>
+            <div class="logo">CosmoCurios</div>
+            <p class="tagline">Espaço - O Universo Infinito</p>
+        </header>
+
+        <a href="index.html" class="back-button">← Voltar para Início</a>
+
+        <h1 class="page-title">🚀 Espaço</h1>
+
+        <div class="diagram-container">
+            <h2 class="diagram-title">Universo em Expansão</h2>
+            <div class="diagram" id="main-diagram"></div>
+            <p>O universo está se expandindo a uma velocidade acelerada</p>
+        </div>
+
+        <section class="curiosities-section">
+            <h2 class="section-subtitle">Curiosidades sobre o Espaço</h2>
+            <div class="curiosities-grid" id="curiosities-grid">
+                <!-- As curiosidades serão carregadas via JavaScript -->
+            </div>
+        </section>
+
+        <footer>
+            <p>CosmoCurios - Explore os mistérios do universo</p>
+            <p>© 2025 - Todos os direitos reservados</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCuriosities('espaco');
+            createDiagram('espaco');
+        });
+    </script>
+</body>
+</html>

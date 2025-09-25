@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Mar - CosmoCurios</title>
+    <meta name="description" content="Curiosidades fascinantes sobre os oceanos">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container content-page">
+        <header>
+            <div class="logo">CosmoCurios</div>
+            <p class="tagline">O Mar - Mistérios das Profundezas</p>
+        </header>
+
+        <a href="index.html" class="back-button">← Voltar para Início</a>
+
+        <h1 class="page-title">🌊 O Mar</h1>
+
+        <div class="diagram-container">
+            <h2 class="diagram-title">Oceano Profundo</h2>
+            <div class="diagram" id="main-diagram"></div>
+            <p>Mais de 80% do oceano permanece inexplorado</p>
+        </div>
+
+        <section class="curiosities-section">
+            <h2 class="section-subtitle">Curiosidades sobre o Mar</h2>
+            <div class="curiosities-grid" id="curiosities-grid">
+                <!-- As curiosidades serão carregadas via JavaScript -->
+            </div>
+        </section>
+
+        <footer>
+            <p>CosmoCurios - Descubra os segredos dos oceanos</p>
+            <p>© 2025 - Todos os direitos reservados</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCuriosities('mar');
+            createDiagram('mar');
+        });
+    </script>
+</body>
+</html>
