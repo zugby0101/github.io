@@ -144,6 +144,25 @@ button{font-family:inherit;cursor:pointer;border:none}
  .pratos{grid-template-columns:repeat(2,1fr)}
  .scene{height:270px}.deco .shelf{display:none}
 }
+.divers{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
+.diverCard{background:#fff;border:3px solid var(--ink);padding:12px;text-align:left;display:flex;flex-direction:column;gap:6px;font-family:inherit;color:var(--ink);box-shadow:0 4px 0 var(--ink)}
+.diverCard.sel{background:#fff4c2;box-shadow:0 4px 0 var(--ink),0 0 0 4px var(--gold)}
+.diverCard .dimg{background:linear-gradient(#4fb9e6,#1f6fae);border:3px solid var(--ink);height:110px;display:flex;align-items:center;justify-content:center}
+.diverCard .dimg img{width:168px;animation:swim 1.2s steps(2) infinite}
+@keyframes swim{50%{transform:translate(3px,-3px)}}
+.diverCard b{font-size:22px}.diverCard small{color:#4a5a6a;font-size:14px;line-height:1.3;min-height:36px}
+.dstats div{display:flex;align-items:center;gap:8px;font-size:13px}.dstats span{width:80px}
+.dstats i{display:flex;gap:3px}.dstats em{width:16px;height:8px;border:2px solid var(--ink);background:#e6d6bf}.dstats em.on{background:var(--coral)}
+.conqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.conq{display:flex;gap:10px;align-items:center;background:#ece4d6;border:3px solid #9a8a74;padding:8px;opacity:.7}
+.conq.ok{background:#fff;border-color:var(--ink);opacity:1;box-shadow:inset -3px -3px 0 #f2c94a}
+.conq .ci{font-size:28px;width:40px;text-align:center}.conq b{display:block;font-size:15px}.conq small{display:block;color:#4a5a6a;font-size:12.5px;line-height:1.25}
+.conq span{display:block;font-size:12px;font-weight:600;color:#2f7d4f;margin-top:2px}.conq:not(.ok) span{color:#7a6a58}
+#cpops{position:fixed;top:64px;right:10px;z-index:80;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.cpop{display:flex;align-items:center;gap:10px;background:#1a1020;color:#fff;border:3px solid var(--gold);box-shadow:0 4px 0 #000;padding:8px 14px 8px 10px;animation:cin .3s steps(4);min-width:240px}
+.cpop.out{animation:cout .4s steps(4) forwards}
+.cpop .ci{font-size:30px}.cpop small{display:block;font-size:11px;color:var(--gold);letter-spacing:1px}.cpop b{display:block;font-size:17px}.cpop span{font-size:13px;color:#7CFFB2}
+@keyframes cin{from{transform:translateX(120%)}}@keyframes cout{to{transform:translateX(120%);opacity:0}}
 </style>
 </head>
 <body>
@@ -153,12 +172,12 @@ button{font-family:inherit;cursor:pointer;border:none}
  <div class="tover">
   <div class="logo">MAR AZUL<small>MERGULHO &amp; SUSHI</small></div>
   <div class="fishspace"></div>
-  <div class="story">O pequeno restaurante de sushi do <b>Vovô Kenji</b> está quase fechando. Você é a <b>Nami</b>, neta mergulhadora. Pesque de dia, sirva sushi à noite e junte <b class="g">R$ 3.000</b> para a <b>Grande Reforma</b>!</div>
+  <div class="story">O pequeno restaurante de sushi do <b>Vovô Kenji</b> está quase fechando. Escolha entre os netos mergulhadores, <b>Nami</b> ou <b>Kai</b>. Pesque de dia, sirva sushi à noite e junte <b class="g">R$ 3.000</b> para a <b>Grande Reforma</b>!</div>
   <div class="how">
    <div><b>🤿 De dia: mergulho</b><br>Nade com <b>WASD / setas</b> e <b>clique</b> para lançar o arpão. No celular: toque e segure para nadar e toque no peixe (ou no 🔱) para atirar. Suba para respirar e volte ao ⛵ para terminar.</div>
    <div><b>🏮 À noite: restaurante</b><br>Os clientes pedem pratos com o que você pescou. Toque no <b>prato</b> para o Vovô Kenji preparar e depois no <b>cliente</b> para servir. Rapidez rende gorjeta e fama!</div>
   </div>
-  <div class="row"><button class="btn" id="bNovo">🌊 Novo jogo</button><button class="btn alt" id="bCont" style="display:none">Continuar</button></div>
+  <div class="row"><button class="btn" id="bNovo">🌊 Novo jogo</button><button class="btn alt" id="bCont" style="display:none">Continuar</button><button class="btn gold" id="bConq">🏆 Conquistas</button></div>
  </div>
 </div>
 
@@ -198,6 +217,7 @@ button{font-family:inherit;cursor:pointer;border:none}
 
 <div id="panel" class="screen"><div class="card pxbox" id="panelCard"></div></div>
 <div class="toast" id="toast"></div>
+<div id="cpops"></div>
 
 <script>
 // ================= utilidades =================
@@ -271,13 +291,45 @@ const UPG=[
  {id:'faca',nome:'Faca do Chef',desc:'Kenji prepara pratos 20% mais rápido',ic:'🔪',base:120,max:4},
 ];
 const REFORMA=3000;
-const novoEstado=()=>({dia:1,dinheiro:60,fama:3,estoque:{},upg:{oxi:0,arpao:0,rede:0,nad:0,luz:0,balcao:0,faca:0},reformado:false,stats:{peixes:0,clientes:0,ganho:0}});
+const DIVERS={
+ nami:{nome:'Nami',desc:'Ágil e certeira. Nada mais rápido e recarrega o arpão num piscar de olhos.',stats:{'Velocidade':4,'Oxigênio':2,'Carga':2,'Arpão':4},
+  pal:{suit:'#1d6f7d',sl:'#2e95a3',sd:'#124b55',fin:'#ffcf3a',fd:'#d99a12',skin:'#f3c6a0',hair:'#3a2214',tank:'#ffbf2e',tankL:'#ffe08a',tankD:'#d48a12',mask:'#ff5d7a',stripe:'#ff5d7a'}},
+ kai:{nome:'Kai',desc:'Fôlego de baleia e braços fortes. Fica mais tempo no fundo e carrega mais peixe.',stats:{'Velocidade':2,'Oxigênio':4,'Carga':4,'Arpão':2},
+  pal:{suit:'#a8323e',sl:'#d0505a',sd:'#6a1e26',fin:'#3fd0c0',fd:'#2a9a8c',skin:'#c68a5a',hair:'#15151f',tank:'#5aa0e0',tankL:'#a8d4ff',tankD:'#2f6aa8',mask:'#ffd23f',stripe:'#ffd23f',band:'#ffffff'}},
+};
+const CONQ=[
+ {id:'fisgada',ic:'🎣',nome:'Primeira Fisgada',desc:'Pesque seu primeiro peixe.',premio:20},
+ {id:'rede',ic:'🧺',nome:'Rede Cheia',desc:'Volte ao barco com a rede lotada.',premio:40},
+ {id:'atum',ic:'🐟',nome:'Rei do Atum',desc:'Pesque um atum.',premio:60},
+ {id:'biologo',ic:'🔬',nome:'Biólogo Marinho',desc:'Pesque todas as 7 espécies.',premio:150},
+ {id:'perolas',ic:'🦪',nome:'Caçador de Pérolas',desc:'Encontre 5 pérolas no total.',premio:80},
+ {id:'tubarao',ic:'🦈',nome:'Domador de Tubarões',desc:'Atordoe um tubarão com o arpão.',premio:60},
+ {id:'abismo',ic:'🌑',nome:'Abissal',desc:'Chegue a 140 m de profundidade.',premio:80},
+ {id:'desmaio',ic:'😵',nome:'Quase Virei Peixe',desc:'Fique sem oxigênio uma vez.',premio:10},
+ {id:'dupla',ic:'🤝',nome:'Dupla Dinâmica',desc:'Mergulhe com a Nami e com o Kai.',premio:50},
+ {id:'cliente',ic:'🍣',nome:'Itadakimasu!',desc:'Sirva seu primeiro cliente.',premio:20},
+ {id:'combo',ic:'🍱',nome:'Obra-Prima',desc:'Sirva um Combinado do Kenji.',premio:60},
+ {id:'perfeita',ic:'🌙',nome:'Noite Perfeita',desc:'Atenda 5+ clientes numa noite sem ninguém ir embora.',premio:100},
+ {id:'cem',ic:'🏮',nome:'Casa Cheia',desc:'Atenda 100 clientes no total.',premio:200},
+ {id:'fama',ic:'⭐',nome:'Cinco Estrelas',desc:'Alcance a fama máxima.',premio:150},
+ {id:'milhar',ic:'💰',nome:'Primeiro Milhar',desc:'Junte R$ 1.000 de uma vez.',premio:50},
+ {id:'equipado',ic:'🛠️',nome:'Bem Equipado',desc:'Compre 10 melhorias.',premio:100},
+ {id:'reforma',ic:'🏯',nome:'Sonho Realizado',desc:'Faça a Grande Reforma do restaurante.',premio:300},
+];
+function conquistar(id){if(!S.conq)S.conq={};if(S.conq[id])return;const c=CONQ.find(x=>x.id===id);if(!c)return;S.conq[id]=Date.now();S.dinheiro+=c.premio;salvar();
+ const el=document.createElement('div');el.className='cpop';el.innerHTML=`<div class="ci">${c.ic}</div><div><small>CONQUISTA DESBLOQUEADA</small><b>${c.nome}</b><span>+${fmt(c.premio)}</span></div>`;
+ $('#cpops').appendChild(el);setTimeout(()=>el.classList.add('out'),3200);setTimeout(()=>el.remove(),3700);
+ [784,988,1175,1568].forEach((f,i)=>setTimeout(()=>som(f,0.12,'square',0.045),i*90));
+ if(typeof R!=='undefined'&&R&&!R.fim&&$('#rest').classList.contains('on'))renderTopo();}
+function checarDinheiro(){if(S.dinheiro>=1000)conquistar('milhar');}
+const novoEstado=()=>({dia:1,dinheiro:60,fama:3,estoque:{},upg:{oxi:0,arpao:0,rede:0,nad:0,luz:0,balcao:0,faca:0},reformado:false,diver:'nami',conq:{},stats:{peixes:0,clientes:0,ganho:0,perolas:0,especies:[],divers:[]}});
 let S=novoEstado();
 const SAVE='marazul_px_v1';
 function salvar(){try{localStorage.setItem(SAVE,JSON.stringify(S));}catch(e){}}
 function carregar(){try{const s=JSON.parse(localStorage.getItem(SAVE));if(s&&s.dia)return s;}catch(e){}return null;}
-const oxiMax=()=>100+35*S.upg.oxi, dano=()=>1+S.upg.arpao, alcance=()=>360+35*S.upg.arpao, recarga=()=>0.5-0.07*S.upg.arpao;
-const cargaMax=()=>8+4*S.upg.rede, velDiver=()=>190*(1+0.18*S.upg.nad);
+const isKai=()=>S.diver==='kai';
+const oxiMax=()=>100+35*S.upg.oxi+(isKai()?35:0), dano=()=>1+S.upg.arpao, alcance=()=>360+35*S.upg.arpao, recarga=()=>(0.5-0.07*S.upg.arpao)*(isKai()?1:0.65);
+const cargaMax=()=>8+4*S.upg.rede+(isKai()?3:0), velDiver=()=>190*(1+0.18*S.upg.nad)*(isKai()?1:1.15);
 const custoUpg=u=>Math.round(u.base*Math.pow(1.65,S.upg[u.id]));
 
 // ================= sprites =================
@@ -371,24 +423,27 @@ function buildSprites(){
   for(let x=1;x<17;x++)if(x%2)g.set(x,9,'#ffd6f5');
   SP.agua.frames.push(g.canvas('auto'));}
  SP.agua.ax=10;SP.agua.ay=9;
- SP.diver={frames:[]};
- for(let fr=0;fr<3;fr++){const g=new G(40,20),k=[-1,0,1][fr],suit='#1d6f7d',sl='#2e95a3',sd='#124b55',fin='#ffcf3a',fd='#d99a12',skin='#f3c6a0',hair='#3a2214';
+ SP.divers={};
+ for(const id in DIVERS){const P2=DIVERS[id].pal,fr3=[];
+ for(let fr=0;fr<3;fr++){const g=new G(40,20),k=[-1,0,1][fr],{suit,sl,sd,fin,fd,skin,hair,tank,tankL,tankD,mask,stripe}=P2;
   const leg=(yb,kk,c)=>{g.line(13,yb,8,yb+kk,c);g.line(13,yb+1,8,yb+kk+1,c);g.line(8,yb+kk,4,yb+kk*2,c);g.line(8,yb+kk+1,4,yb+kk*2+1,c);
    g.tri(5,yb+kk*2-1,0,yb+kk*3-3,0,yb+kk*3+4,fin);g.line(0,yb+kk*3-3,0,yb+kk*3+4,fd);g.set(4,yb+kk*2+1,fd);};
   leg(9,-k,sd);leg(11,k,suit);
   g.ell(19,10,7.5,3.6,(nx,ny)=>ny<-0.35?sl:ny>0.45?sd:suit);
-  g.line(16,7,19,13,'#ff5d7a');
-  g.rect(12,3,12,4,'#ffbf2e');g.rect(13,3,10,1,'#ffe08a');g.rect(12,6,12,1,'#d48a12');
+  if(id==='kai'){g.line(14,7,14,13,stripe);g.line(17,7,17,13,stripe);}else g.line(16,7,19,13,stripe);
+  g.rect(12,3,12,4,tank);g.rect(13,3,10,1,tankL);g.rect(12,6,12,1,tankD);
   g.rect(24,4,2,2,'#b8c0c8');g.set(25,3,'#8a96a3');g.line(15,3,15,8,'#2a2a30');g.line(21,3,21,8,'#2a2a30');
   g.line(26,4,29,5,'#333a44');g.line(29,5,31,8,'#333a44');
   g.ell(30,8,3.8,3.8,(nx,ny)=>nx>0.5&&ny>0?shade(skin,0.88):skin);
-  g.ell(29.5,6.6,4.2,3.2,(nx,ny)=>ny<0.05?(nx<-0.3&&ny<-0.5?shade(hair,1.6):hair):null);
-  const pw=[0,1,0][fr];g.rect(24,6+pw,2,1,hair);g.rect(22,7+pw,2,1,hair);g.set(21,8+pw,shade(hair,1.5));
-  g.rect(31,7,3,2,'#8fe3ff');g.set(31,7,'#ffffff');g.line(27,7,30,7,'#ff5d7a');g.set(34,7,'#ff5d7a');g.set(34,8,'#ff5d7a');
+  if(id==='kai'){g.ell(29.5,6.4,4.1,2.8,(nx,ny)=>ny<-0.05?(nx<-0.3&&ny<-0.5?shade(hair,1.7):hair):null);
+   [[27,3],[29,2],[31,3],[26,4]].forEach(([x,y])=>g.set(x,y,hair));g.rect(26,5,8,1,P2.band);g.set(26,6,P2.band);g.set(25,6+[0,1,0][fr],P2.band);}
+  else{g.ell(29.5,6.6,4.2,3.2,(nx,ny)=>ny<0.05?(nx<-0.3&&ny<-0.5?shade(hair,1.6):hair):null);
+   const pw=[0,1,0][fr];g.rect(24,6+pw,2,1,hair);g.rect(22,7+pw,2,1,hair);g.set(21,8+pw,shade(hair,1.5));}
+  g.rect(31,7,3,2,'#8fe3ff');g.set(31,7,'#ffffff');g.line(27,7,30,7,mask);g.set(34,7,mask);g.set(34,8,mask);
   g.line(24,11,29,13,sd);g.line(24,12,29,14,suit);g.set(30,13,skin);g.set(30,14,skin);
   g.rect(28,14,10,1,'#4a525c');g.rect(29,15,3,1,'#3a4048');g.rect(36,13,2,1,'#c8d0d8');g.set(38,14,'#e8eef4');
-  SP.diver.frames.push(g.canvas('auto'));}
- SP.diver.ax=21;SP.diver.ay=12;
+  fr3.push(g.canvas('auto'));}
+ SP.divers[id]={frames:fr3,ax:21,ay:12};}
  SP.ostra=[0,1].map(op=>{const g=new G(18,11);g.ell(9,8,8,2.6,(nx,ny,x)=>x%3===0?'#7a6a58':'#9a8a74');
   if(op){g.ell(9,6.5,2.2,2.2,(nx,ny)=>nx<-0.2&&ny<-0.2?'#ffffff':'#f2e6f8');g.ell(9,2.5,8,2.4,(nx,ny,x)=>x%3===0?'#8d7d6b':'#b0a08a');}
   else g.ell(9,6,8,2.4,(nx,ny,x)=>x%3===0?'#8d7d6b':'#b0a08a');
@@ -517,6 +572,7 @@ function spawnFish(t,longe){const f=FISH[t];let x,y,tries=0;
 
 function novoMergulho(){
  stopTitle();
+ {const dv2=S.stats.divers||(S.stats.divers=[]);if(!dv2.includes(S.diver))dv2.push(S.diver);if(dv2.length>=2)setTimeout(()=>conquistar('dupla'),1500);}
  const floor=[];for(let i=0;i<=W/50+1;i++){const n=Math.sin(i*0.37)*35+Math.sin(i*0.11)*70+rand(-12,12),deep=H-130+n,raso=640+Math.sin(i*0.5)*40+rand(-8,8),x=i*50,k=clamp((x-500)/1300,0,1),sm=k*k*(3-2*k);floor.push(raso*(1-sm)+deep*sm);}
  D={t:0,sol:210,diver:{x:330,y:30,vx:0,vy:0,dir:1,oxi:oxiMax(),hurt:0,kick:0},peixes:[],arpao:null,cd:0,parts:[],textos:[],carga:[],peso:0,floor,kelp:[],rochas:[],ostras:[],aguas:[],tubaroes:[],respawn:[],cam:{x:0,y:-100},fim:false,perolas:0,sparks:[],grass:[],anem:[],bolhaT:0,alarmeT:0,hintT:7,cpx:0,cpy:0};
  for(let i=0;i<80;i++){const c=pick([['#2f8f5b','#5cc488'],['#3aa86b','#7ad89a'],['#27774c','#4aa872'],['#4a9e3f','#86d06a'],['#7a8a2a','#b8c858']]);D.kelp.push({x:rand(0,W),h:rand(90,300),ph:rand(0,TAU),c1:c[0],c2:c[1]});}
@@ -556,6 +612,7 @@ function acertar(p){const f=FISH[p.t];
  D.sparks.push({x:p.x,y:p.y,life:1});p.hp-=dano();p.flash=0.12;p.flee=2.5;bolhas(p.x,p.y,5,3);som(300,0.08,'square',0.05);
  if(p.hp<=0){D.carga.push(p.t);D.peso+=f.peso;texto(p.x,p.y-24,'+ '+f.nome,'#7CFFB2');bolhas(p.x,p.y,14,5);
   som(520,0.1,'square',0.05);setTimeout(()=>som(780,0.14,'square',0.05),90);
+  conquistar('fisgada');if(p.t==='atum')conquistar('atum');{const e=S.stats.especies||(S.stats.especies=[]);if(!e.includes(p.t))e.push(p.t);if(e.length>=7)conquistar('biologo');}
   D.peixes.splice(D.peixes.indexOf(p),1);D.respawn.push({t:p.t,tempo:rand(10,18)});}}
 function machucar(qtd,fx,fy,txt){const dv=D.diver;if(dv.hurt>0)return;dv.oxi-=qtd;dv.hurt=1.3;
  const a=Math.atan2(dv.y-fy,dv.x-fx);dv.vx+=Math.cos(a)*380;dv.vy+=Math.sin(a)*380;texto(dv.x,dv.y-30,txt,'#ff8fa3');som(160,0.25,'sawtooth',0.06,-80);}
@@ -579,13 +636,14 @@ function updDive(dt){
  if(dv.y<34)dv.oxi=Math.min(oxiMax(),dv.oxi+35*dt);else dv.oxi-=(1+dv.y/1000*0.95)*dt;
  if(dv.oxi/oxiMax()<0.25&&dv.y>34){D.alarmeT-=dt;if(D.alarmeT<=0){D.alarmeT=0.9;som(880,0.08,'square',0.03);}}
  D.bolhaT-=dt;if(dv.y>30&&D.bolhaT<=0){D.bolhaT=rand(0.25,0.6);bolhas(dv.x+dv.dir*20,dv.y-8,2,3);}
+ if(dv.y>=2800)conquistar('abismo');
  if(dv.oxi<=0){desmaiar();return;}
  if(D.sol<=0){fimMergulho('sol');return;}
  if(D.cd>0)D.cd-=dt;
  const h=D.arpao;
  if(h){if(!h.volta){h.x+=h.vx*dt;h.y+=h.vy*dt;h.d+=1000*dt;
    for(const p of D.peixes){const f=FISH[p.t];const r=(f.tipo==='enguia'?f.tam*0.8:f.tam*0.85)+7;if(Math.hypot(p.x-h.x,p.y-h.y)<r){acertar(p);h.volta=true;break;}}
-   if(!h.volta)for(const s of D.tubaroes){if(Math.hypot(s.x-h.x,s.y-h.y)<45){s.stun=3.5;h.volta=true;texto(s.x,s.y-50,'Atordoado!','#ffd166');som(120,0.2,'square',0.05);break;}}
+   if(!h.volta)for(const s of D.tubaroes){if(Math.hypot(s.x-h.x,s.y-h.y)<45){s.stun=3.5;h.volta=true;conquistar('tubarao');texto(s.x,s.y-50,'Atordoado!','#ffd166');som(120,0.2,'square',0.05);break;}}
    if(h.d>alcance()||h.y<0||h.y>floorY(h.x))h.volta=true;}
   else{const dx=dv.x-h.x,dy=dv.y-h.y,d=Math.hypot(dx,dy);if(d<26){D.arpao=null;D.cd=recarga();}else{h.x+=dx/d*1400*dt;h.y+=dy/d*1400*dt;}}}
  for(const p of D.peixes){
@@ -607,7 +665,7 @@ function updDive(dt){
    else{if(s.x<s.x0)s.dir=1;if(s.x>s.x1)s.dir=-1;s.vx+=(s.dir*70-s.vx)*dt;s.vy*=0.97;}
    if(d<44){machucar(22,s.x,s.y,'Mordida de tubarão! −22 O₂');s.cool=2.5;s.vx=-s.vx;}}
   s.x+=s.vx*dt;s.y=clamp(s.y+s.vy*dt,1900,floorY(s.x)-40);}
- for(const o of D.ostras){o.ph+=dt;if(o.perola&&Math.hypot(o.x-dv.x,floorY(o.x)-10-dv.y)<38){o.perola=false;D.perolas++;texto(o.x,floorY(o.x)-40,'+ Pérola! (R$ 35)','#ffe9f5');som(990,0.2,'square',0.05);bolhas(o.x,floorY(o.x)-10,10,3);}}
+ for(const o of D.ostras){o.ph+=dt;if(o.perola&&Math.hypot(o.x-dv.x,floorY(o.x)-10-dv.y)<38){o.perola=false;D.perolas++;S.stats.perolas=(S.stats.perolas||0)+1;if(S.stats.perolas>=5)conquistar('perolas');texto(o.x,floorY(o.x)-40,'+ Pérola! (R$ 35)','#ffe9f5');som(990,0.2,'square',0.05);bolhas(o.x,floorY(o.x)-10,10,3);}}
  for(let i=D.sparks.length-1;i>=0;i--){D.sparks[i].life-=dt*2;if(D.sparks[i].life<=0)D.sparks.splice(i,1);}
  for(let i=D.parts.length-1;i>=0;i--){const q=D.parts[i];q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=0.96;q.life-=dt;if(q.life<=0||q.y<2)D.parts.splice(i,1);}
  for(let i=D.textos.length-1;i>=0;i--){const t=D.textos[i];t.y-=30*dt;t.life-=dt;if(t.life<=0)D.textos.splice(i,1);}
@@ -716,7 +774,7 @@ function drawDive(){
   if(s.stun>0){const a=t*6;for(let k=0;k<3;k++){b.fillStyle=k%2?'#ffffff':'#ffd23f';const px=Math.round(x+Math.cos(a+k*2.1)*9),py=Math.round(y-22+Math.sin(a+k*2.1)*3);b.fillRect(px,py-1,1,3);b.fillRect(px-1,py,3,1);}}}
  if(D.arpao){const h=D.arpao;b.fillStyle='rgba(225,230,235,0.8)';pline(b,P(dv.x)+dv.dir*17,P(dv.y)+3,P(h.x),P(h.y));
   const hx2=P(h.x),hy2=P(h.y);b.fillStyle='#8a96a3';pline(b,hx2,hy2,hx2-Math.cos(h.a)*8,hy2-Math.sin(h.a)*8);b.fillStyle='#ffffff';b.fillRect(hx2,hy2,1,1);b.fillStyle='#e8eef4';b.fillRect(Math.round(hx2-Math.cos(h.a)*2),Math.round(hy2-Math.sin(h.a)*2),1,1);}
- if(!(dv.hurt>0&&Math.floor(dv.hurt*12)%2))spr(b,SP.diver.frames[DFR[Math.floor(dv.kick)%4]],P(dv.x),P(dv.y),SP.diver.ax,SP.diver.ay,dv.dir<0);
+ if(!(dv.hurt>0&&Math.floor(dv.hurt*12)%2)){const SD=SP.divers[S.diver]||SP.divers.nami;spr(b,SD.frames[DFR[Math.floor(dv.kick)%4]],P(dv.x),P(dv.y),SD.ax,SD.ay,dv.dir<0);}
  for(const q of D.parts){const x=P(q.x),y=P(q.y);if(q.r<2.2){b.fillStyle='#d8f4ff';b.fillRect(x,y,1,1);}else b.drawImage(SP.bub[q.r<3.4?0:1],x-1,y-1);}
  for(const k of D.sparks){const x=P(k.x),y=P(k.y),r=Math.round(k.life*6);b.fillStyle=k.life>0.25?'#fff6c0':'#ffc23d';b.fillRect(x-r,y,r*2+1,1);b.fillRect(x,y-r,1,r*2+1);if(r>2){b.fillRect(x-1,y-1,3,3);}}
  if(cpy<30){const bob=Math.round(Math.sin(t*1.5)*1.5),bx=P(330)-62;
@@ -752,8 +810,9 @@ function updHUD(){const dv=D.diver,r=clamp(dv.oxi/oxiMax(),0,1),el=$('#hOxi');el
  $('#hCarga').textContent=`🧺 ${D.peso}/${cargaMax()}`;$('#hCarga').style.color=D.peso>=cargaMax()?'#ffd166':'#fff';
  const s=Math.max(0,Math.ceil(D.sol));$('#hSol').textContent=(s<30?'🌅 ':'☀ ')+Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function loopDive(ts){if(!D||D.fim)return;const dt=clamp((ts-last)/1000||0,0,0.05);last=ts;updDive(dt);if(D.fim)return;drawDive();updHUD();rafId=requestAnimationFrame(loopDive);}
-function desmaiar(){const n=D.carga.length;D.carga.sort(()=>Math.random()-0.5);const perdidos=Math.floor(n/2);D.carga=D.carga.slice(0,n-perdidos);som(300,0.6,'sawtooth',0.05,-250);fimMergulho('desmaio',perdidos);}
+function desmaiar(){const n=D.carga.length;D.carga.sort(()=>Math.random()-0.5);const perdidos=Math.floor(n/2);D.carga=D.carga.slice(0,n-perdidos);som(300,0.6,'sawtooth',0.05,-250);fimMergulho('desmaio',perdidos);conquistar('desmaio');}
 function fimMergulho(motivo,perdidos){
+ if(motivo==='barco'&&D.peso>=cargaMax())setTimeout(()=>conquistar('rede'),400);
  D.fim=true;cancelAnimationFrame(rafId);touch.on=false;keys.clear();
  const resumo={};D.carga.forEach(t=>{resumo[t]=(resumo[t]||0)+1;S.estoque[t]=(S.estoque[t]||0)+FISH[t].porcoes;});
  const ganhoP=D.perolas*35;S.dinheiro+=ganhoP;S.stats.peixes+=D.carga.length;salvar();
@@ -836,8 +895,9 @@ function servir(i){if(!R||R.fim)return;const c=R.assentos[i];if(!c||c.estado!=='
  const k=R.bandeja.indexOf(c.prato),d=$('#seat'+i);
  if(k<0){toast('Prepare um '+PR[c.prato].nome+' primeiro!');d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake');som(180,0.12,'square',0.04);return;}
  R.bandeja.splice(k,1);const p=PR[c.prato],ratio=c.pac/c.max,base=Math.round(p.preco*precoMult()),gorj=Math.round(p.preco*0.35*ratio);
- S.dinheiro+=base+gorj;S.stats.ganho+=base+gorj;R.ganhos+=base;R.gorjetas+=gorj;R.atendidos++;S.stats.clientes++;
- S.fama=clamp(S.fama+(ratio>0.5?0.12:0.04),1,5);c.estado='feliz';c.timer=1.8;c.pago=base+gorj;
+ S.dinheiro+=base+gorj;S.stats.ganho+=base+gorj;R.ganhos+=base;R.gorjetas+=gorj;R.atendidos++;S.stats.clientes++;conquistar('cliente');if(c.prato==='combo')conquistar('combo');if(S.stats.clientes>=100)conquistar('cem');
+ S.fama=clamp(S.fama+(ratio>0.5?0.12:0.04),1,5);
+ c.estado='feliz';c.timer=1.8;c.pago=base+gorj;if(S.fama>=4.95)conquistar('fama');checarDinheiro();
  const r=d.getBoundingClientRect();floatTxt(r.left+r.width/2-30,r.top+10,'+'+fmt(base+gorj));
  som(880,0.08,'square',0.05);setTimeout(()=>som(1175,0.12,'square',0.05),70);
  renderAssento(i);renderBandeja();renderPratos();renderTopo();}
@@ -862,6 +922,7 @@ $('#rest').addEventListener('pointermove',e=>{const nx=e.clientX/innerWidth*2-1,
  $('.ctop').style.transform=`rotateX(62deg) rotateZ(${(nx*-1.2).toFixed(2)}deg)`;});
 function fimNoite(motivo){R.fim=true;cancelAnimationFrame(rafId);
  R.bandeja.forEach(id=>{for(const k in PR[id].ing)S.estoque[k]=(S.estoque[k]||0)+PR[id].ing[k];});salvar();
+ if(R.perdidos===0&&R.atendidos>=5)setTimeout(()=>conquistar('perfeita'),300);
  const nota=R.perdidos===0&&R.atendidos>0?'Noite perfeita! Nenhum cliente saiu bravo.':R.perdidos>R.atendidos?'Muitos clientes foram embora… tente preparar os pedidos mais rápido.':'Boa noite de trabalho!';
  const f=Math.round(S.fama);
  $('#panelCard').innerHTML=`<h2>🌙 Fim da noite ${S.dia}</h2><div class="motivo">${motivo==='estoque'?'O peixe acabou e o Vovô Kenji fechou mais cedo. ':''}${nota}</div>
@@ -876,10 +937,11 @@ function loja(){const c=$('#panelCard');show('panel');
   <div class="upgs">${UPG.map(u=>{const lv=S.upg[u.id],mx=lv>=u.max,cu=custoUpg(u);return`<div class="upg"><div class="ic">${u.ic}</div><b>${u.nome}</b><small>${u.desc}</small><div class="pips">${Array.from({length:u.max},(_,i)=>`<i class="${i<lv?'on':''}"></i>`).join('')}</div><button data-u="${u.id}" ${mx||S.dinheiro<cu?'disabled':''}>${mx?'Máximo':'Comprar '+fmt(cu)}</button></div>`;}).join('')}</div>
   ${S.reformado?`<div class="reforma"><div class="ic">🏯</div><div><b>Restaurante reformado!</b><br><small>Os pratos valem 25% a mais.</small></div></div>`:
   `<div class="reforma"><div class="ic">🏯</div><div><b>Grande Reforma do Restaurante</b><br><small>O sonho do Vovô Kenji. Faltam ${fmt(Math.max(0,REFORMA-S.dinheiro))}.</small><div class="pbar" style="margin-top:6px;background:#f6e2b0"><i style="width:${clamp(S.dinheiro/REFORMA*100,0,100)}%;background:repeating-linear-gradient(90deg,#f2a516 0 6px,#d88a08 6px 8px)"></i></div></div><button class="btn gold" id="bRef" ${S.dinheiro<REFORMA?'disabled':''}>${fmt(REFORMA)}</button></div>`}
-  <div class="actions"><button class="btn alt" id="bDormir">😴 Dormir e mergulhar no dia ${S.dia+1}</button></div>`;
- c.querySelectorAll('[data-u]').forEach(bt=>bt.onclick=()=>{const u=UPG.find(x=>x.id===bt.dataset.u),cu=custoUpg(u);if(S.dinheiro>=cu&&S.upg[u.id]<u.max){S.dinheiro-=cu;S.upg[u.id]++;salvar();som(700,0.08);setTimeout(()=>som(1050,0.12),70);loja();}});
- const br=$('#bRef');if(br)br.onclick=()=>{if(S.dinheiro>=REFORMA){S.dinheiro-=REFORMA;S.reformado=true;salvar();vitoria();}};
- $('#bDormir').onclick=()=>{S.dia++;salvar();som(500,0.1);novoMergulho();};}
+  <div class="actions"><button class="btn" id="bTrocar">🤿 Mergulhador: ${DIVERS[S.diver].nome}</button><button class="btn gold" id="bConqL">🏆 Conquistas ${nConq()}/${CONQ.length}</button><button class="btn alt" id="bDormir">😴 Dormir e mergulhar no dia ${S.dia+1}</button></div>`;
+ c.querySelectorAll('[data-u]').forEach(bt=>bt.onclick=()=>{const u=UPG.find(x=>x.id===bt.dataset.u),cu=custoUpg(u);if(S.dinheiro>=cu&&S.upg[u.id]<u.max){S.dinheiro-=cu;S.upg[u.id]++;salvar();if(Object.values(S.upg).reduce((a,v)=>a+v,0)>=10)conquistar('equipado');som(700,0.08);setTimeout(()=>som(1050,0.12),70);loja();}});
+ const br=$('#bRef');if(br)br.onclick=()=>{if(S.dinheiro>=REFORMA){S.dinheiro-=REFORMA;S.reformado=true;salvar();vitoria();conquistar('reforma');}};
+ $('#bDormir').onclick=()=>{S.dia++;salvar();som(500,0.1);novoMergulho();};
+ $('#bTrocar').onclick=()=>escolherMergulhador(()=>loja());$('#bConqL').onclick=()=>telaConquistas(loja);checarDinheiro();}
 function vitoria(){
  for(let i=0;i<90;i++){const d=document.createElement('div');d.className='confetti';d.style.left=rand(0,100)+'vw';d.style.background=pick(['#ff6b4a','#ffc23d','#3ccf91','#5ee7ff','#ff8ee0']);d.style.animationDuration=rand(2,4)+'s';d.style.animationDelay=rand(0,1)+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),5200);}
  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>som(f,0.25,'square',0.05),i*140));
@@ -920,10 +982,29 @@ function loopTitle(ts){const dt=clamp((ts-tLast)/1000||0,0,0.05);tLast=ts;tT+=dt
  tc.setTransform(1,0,0,1,0,0);tc.imageSmoothingEnabled=false;tc.drawImage(tb,0,0,tW*tScale*(tcv.width/innerWidth),tH*tScale*(tcv.width/innerWidth));
  tRaf=requestAnimationFrame(loopTitle);}
 
+// ================= escolha de mergulhador e conquistas =================
+const nConq=()=>Object.keys(S.conq||{}).filter(k=>CONQ.some(c=>c.id===k)).length;
+function retrato(id){const fr=SP.divers[id].frames[1],k=4,c=document.createElement('canvas');c.width=fr.width*k;c.height=fr.height*k;const x=c.getContext('2d');x.imageSmoothingEnabled=false;x.drawImage(fr,0,0,c.width,c.height);return c.toDataURL();}
+function escolherMergulhador(cb,novo){show('panel');
+ $('#panelCard').innerHTML=`<h2>🤿 Escolha seu mergulhador</h2><p>${novo?'Quem vai mergulhar para salvar o restaurante do Vovô Kenji?':'Você pode trocar de mergulhador quando quiser. As melhorias valem para os dois.'}</p>
+  <div class="divers">${Object.entries(DIVERS).map(([id,d])=>`<button class="diverCard${S.diver===id?' sel':''}" data-d="${id}"><div class="dimg"><img src="${retrato(id)}" alt="${d.nome}"></div><b>${d.nome}</b><small>${d.desc}</small>
+   <div class="dstats">${Object.entries(d.stats).map(([k,v])=>`<div><span>${k}</span><i>${Array.from({length:5},(_,j)=>`<em class="${j<v?'on':''}"></em>`).join('')}</i></div>`).join('')}</div></button>`).join('')}</div>
+  <div class="actions"><button class="btn" id="bOkDiver">${novo?'🌊 Começar a aventura':'✔ Confirmar'}</button></div>`;
+ document.querySelectorAll('.diverCard').forEach(c=>c.onclick=()=>{S.diver=c.dataset.d;som(660,0.06);document.querySelectorAll('.diverCard').forEach(x=>x.classList.toggle('sel',x===c));});
+ $('#bOkDiver').onclick=()=>{salvar();som(600,0.1);cb();};}
+function telaConquistas(voltar){show('panel');const n=nConq(),tot=CONQ.reduce((a,c)=>a+(S.conq&&S.conq[c.id]?c.premio:0),0);
+ $('#panelCard').innerHTML=`<h2>🏆 Conquistas</h2><p><b>${n}</b> de <b>${CONQ.length}</b> desbloqueadas · ${fmt(tot)} em prêmios</p>
+  <div class="pbar" style="margin:8px 0 14px;background:#f6e2b0"><i style="width:${n/CONQ.length*100}%;background:repeating-linear-gradient(90deg,#f2a516 0 6px,#d88a08 6px 8px)"></i></div>
+  <div class="conqs">${CONQ.map(c=>{const ok=S.conq&&S.conq[c.id];return`<div class="conq${ok?' ok':''}"><div class="ci">${ok?c.ic:'🔒'}</div><div><b>${c.nome}</b><small>${c.desc}</small><span>${ok?'✔ Desbloqueada':'Prêmio: '+fmt(c.premio)}</span></div></div>`;}).join('')}</div>
+  <div class="actions"><button class="btn alt" id="bVoltarC">⬅ Voltar</button></div>`;
+ $('#bVoltarC').onclick=()=>{som(500,0.06);voltar();};}
+
 // ================= início =================
 function titulo(){show('title');const s=carregar(),bt=$('#bCont');if(s){bt.style.display='';bt.textContent=`Continuar (dia ${s.dia} · ${fmt(s.dinheiro)})`;}else bt.style.display='none';}
-$('#bNovo').onclick=()=>{S=novoEstado();salvar();som(600,0.1);novoMergulho();};
-$('#bCont').onclick=()=>{const s=carregar();if(s){S=Object.assign(novoEstado(),s);S.upg=Object.assign(novoEstado().upg,s.upg);}stopTitle();som(600,0.1);loja();};
+$('#bNovo').onclick=()=>{const conq=(carregar()||{}).conq||{};S=novoEstado();S.conq=conq;som(600,0.1);stopTitle();escolherMergulhador(()=>{salvar();novoMergulho();},true);};
+$('#bConq').onclick=()=>{const s=carregar();if(s)S=normalizar(s);stopTitle();telaConquistas(titulo);};
+function normalizar(s){const n=novoEstado(),o=Object.assign(n,s);o.upg=Object.assign(novoEstado().upg,s.upg);o.stats=Object.assign(novoEstado().stats,s.stats);o.conq=s.conq||{};if(!DIVERS[o.diver])o.diver='nami';return o;}
+$('#bCont').onclick=()=>{const s=carregar();if(s)S=normalizar(s);stopTitle();som(600,0.1);loja();};
 buildSprites();buildWater();gerarIcones();buildDishes();buildMisc();montarDeco();VOX=buildVoxel();titulo();
 </script>
 </body>
